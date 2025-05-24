@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from utils.data_loader import load_data
+from utils.data_functions import prepa_num, prepa_cat
 import textwrap
 import inspect
 
@@ -11,53 +12,25 @@ def show_exploration():
     # Chargement des données
     df = load_data()
 
-    # Préparation des données numériques
-    def prepa_num(df) :
-        balance_mediane = df['balance'].median()
-
-        df['balance_group'] = df['balance'].apply(lambda x: '<0' if x < 0
-                                                else f'0-{int(balance_mediane)}' if x <= balance_mediane
-                                                else f'>{int(balance_mediane)}')
-
-        df['age_group'] = pd.cut(df['age'], bins = [18, 32, 38, 48, 95], labels = ['18-32', '33-38', '39-48', '49-95'])
-
-        balance_order = pd.CategoricalDtype(categories = ['<0', '0-550', '>550'], ordered = True)
-        df['balance_group'] = df['balance_group'].astype(balance_order)
-        return df
-
-    # Préparation des données catégorielles
-    def prepa_cat(df) : 
-        df['month'] = pd.Categorical(df['month'],
-                                    categories = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
-                                                    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
-                                    ordered = True)
-
-        job_mapping = {
-            'management': 'Management',
-            'entrepreneur': 'Independant', 'self-employed': 'Independant',
-            'housemaid': 'Services', 'services': 'Services',
-            'technician': 'Ouvriers-Techniciens', 'admin.': 'Ouvriers-Techniciens', 'blue-collar': 'Ouvriers-Techniciens',
-            'retired': 'Autres', 'unemployed': 'Autres', 'student': 'Autres'
-        }
-        df['job_group'] = df['job'].map(job_mapping).fillna('Autres')
-        return df
-
-
     st.title("Exploration et visualisation des données")
     st.subheader("Préparation des données")
     st.markdown("""
     Dans la découverte des données, on a pu constater que la variable `job` a beaucoup de modalités. On va donc réduire le nombre
                 de modalités de cette variable en regroupant les modalités peu fréquentes dans une catégorie `autres`.
-                Et faire également des regroupements par type de métier.""")
+                Et faire également des regroupements par type de métier.
+                On prendra également le soin d'ordonner les mois pour un affichage chronologique""")
     
-    st.code(textwrap.dedent(inspect.getsource(prepa_cat)), language = 'python')
+    if st.checkbox("Afficher le code de préparation des variables catégorielles", value = False):
+        st.code(textwrap.dedent(inspect.getsource(prepa_cat)), language = 'python')
     
     st.markdown("""
     Il en va de même pour la variable `age`que l'on va regrouper par tranche d'âge. <br>
     Enfin, pour la `balance`, on va également créer des sous groupes pour éviter les valeurs extrêmes.
     """, unsafe_allow_html = True)
 
-    st.code(textwrap.dedent(inspect.getsource(prepa_num)), language = 'python')
+    if st.checkbox("Afficher le code de préparation des variables numériques", value = False):
+        st.code(textwrap.dedent(inspect.getsource(prepa_num)), language = 'python')
+    
     # Affichage variables numériques vs deposit
     st.subheader("Comparaison des variables numériques avec la variable cible")
 

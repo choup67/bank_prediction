@@ -68,7 +68,7 @@ def show_decouverte():
         st.dataframe(df_stats)
 
         st.subheader("Remarques générales")
-        if st.checkbox("Afficher les remarques générales sur les variables catégorielles", value = True):
+        if st.checkbox("Afficher les remarques générales sur les variables catégorielles", value = False):
             st.markdown("""
         - On remarque que les variables ont le plus souvent entre 2 et 4 modalités. Sauf pour la variable `job` et évidemment les mois.
         - La variable `job` contient 12 modalités différentes, ce qui est relativement élevé. On pourrait donc envisager de regrouper certaines modalités pour simplifier l'analyse.
@@ -82,7 +82,7 @@ def show_decouverte():
         """, unsafe_allow_html = True)
 
         st.subheader("Détail des variables catégorielles")
-        if st.checkbox("Afficher les observations sur les variables catégorielles", value = True):
+        if st.checkbox("Afficher les observations sur les variables catégorielles", value = False):
             st.markdown("""
         - `job`  
             - Type ou catégorie d'emploi  
@@ -181,10 +181,10 @@ def show_decouverte():
         plt.tight_layout()
         # Affichage dans Streamlit
         st.pyplot(fig)
-        
+
 
         st.subheader("Remarques générales")
-        if st.checkbox("Afficher les remarques générales sur les variables numériques", value = True):
+        if st.checkbox("Afficher les remarques générales sur les variables numériques", value = False):
             st.markdown("""
         - On peut noter des valeurs négatives pour certaines variables. Dans le cas du solde par exemple, cela est cohérent
             - Pour les autres variables, il semble que -1 signifie que les données sont manquantes.
@@ -194,7 +194,7 @@ def show_decouverte():
 
 
         st.subheader("Détail des variables numériques")
-        if st.checkbox("Afficher les observations sur les variables numériques", value = True):
+        if st.checkbox("Afficher les observations sur les variables numériques", value = False):
             st.markdown("""
         - `age`
             - **Age du client**
