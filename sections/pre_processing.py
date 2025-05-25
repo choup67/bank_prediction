@@ -1,8 +1,7 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-from utils.data_loader import load_and_prepare_data
-from utils.data_functions import replace_unknown, create_active_loan, transform_to_bool, remove_useless_col, ready_to_process_data
+from utils.pipeline import load_and_prepare_data, ready_to_process_data
+from utils.transformations import replace_unknown, create_active_loan, transform_to_bool
+from utils.data_functions import remove_useless_col
 import textwrap
 import inspect
 
@@ -81,16 +80,16 @@ def show_pre_processing():
             """)
 
                 # Chargement des données prêtes
-            X_train, X_test, y_train, y_test = ready_to_process_data()
+            X_train_final, X_test_final, y_train, y_test = ready_to_process_data()
 
             st.subheader("Dimensions du jeu de données :")
             st.markdown(f"""
-            - X_train shape : `{X_train.shape}`
-            - X_test shape : `{X_test.shape}`
+            - X_train shape : `{X_train_final.shape}`
+            - X_test shape : `{X_test_final.shape}`
             """)
 
             st.subheader("Aperçu des données d'entraînement prêtes pour la modélisation :")
             if st.checkbox("Afficher un aperçu des données modélisées", value = False):
-                st.dataframe(X_train.head(), use_container_width = True)
+                st.dataframe(X_train_final.head(), use_container_width = True)
                 st.write("Variable cible (y_train) :")
                 st.dataframe(y_train.head(), use_container_width = True)

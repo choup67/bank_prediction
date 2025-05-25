@@ -76,9 +76,9 @@ def show_decouverte():
         - On peut aussi noter l’apparition de la valeur `unknown` pour certaines variables : `job`, `education`, `contact` et `poutcome`.  Ce qui laisse sous-entendre que même si on n’avait pas de valeurs nulles dans le dataset, il y a tout de même des données manquantes pour certaines catégories.  
                     
         - Dans certains cas, l’impact est faible car peu de données manquantes, mais pour d’autres variables comme `poutcome`, la majorité des données sont `unknown`.  
-          Il faudra donc garder ces informations en tête pour la suite du projet et décider quoi faire avec ces variables et données manquantes (exemple : réduire le dataset).  
+          Nous éliminerons donc les variables qui ne sont pas pertinentes pour l’analyse.
 
-        - Certaines variables contiennent les valeurs `no` et `yes`. Comme ces variables ne contiennent pas de valeurs manquantes, il peut être judicieux de les transformer en type booléen. Cela permettra d’optimiser les calculs, la mémoire et la manipulation des données.  
+        - Certaines variables contiennent les valeurs `no` et `yes`. Comme ces variables ne contiennent pas de valeurs manquantes, nous les tranformons en type booléen. Cela permettra d’optimiser les calculs, la mémoire et la manipulation des données.  
         """, unsafe_allow_html = True)
 
         st.subheader("Détail des variables catégorielles")
@@ -189,7 +189,6 @@ def show_decouverte():
         - On peut noter des valeurs négatives pour certaines variables. Dans le cas du solde par exemple, cela est cohérent
             - Pour les autres variables, il semble que -1 signifie que les données sont manquantes.
         - L'écart type de certaines variables est très élevé. Cela indique une grande disperssion et une moyenne potentiellement tirée vers le haut par des valeurs extrêmes. 
-        - Le traitement des outliers devra être considéré avec attention, particulièrement pour pdays, previous et balance
         """, unsafe_allow_html = True)
 
 

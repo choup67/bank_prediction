@@ -2,9 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from utils.data_loader import load_data
-from utils.data_functions import prepa_num, prepa_cat
+from utils.transformations import prepa_num, prepa_cat
 import textwrap
 import inspect
 

@@ -4,65 +4,7 @@ import streamlit as st
 from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    classification_report, confusion_matrix, ConfusionMatrixDisplay)
 
- # Préparation des données numériques
-@st.cache_data
-def prepa_num(df) :
-    balance_mediane = df['balance'].median()
-
-    df['balance_group'] = df['balance'].apply(lambda x: '<0' if x < 0
-                                            else f'0-{int(balance_mediane)}' if x <= balance_mediane
-                                            else f'>{int(balance_mediane)}')
-
-    df['age_group'] = pd.cut(df['age'], bins = [18, 32, 38, 48, 95], labels = ['18-32', '33-38', '39-48', '49-95'])
-
-    balance_order = pd.CategoricalDtype(categories = ['<0', '0-550', '>550'], ordered = True)
-    df['balance_group'] = df['balance_group'].astype(balance_order)
-    return df
-
-# préparation des données catégorielles
-@st.cache_data
-def prepa_cat(df) : 
-    df['month'] = pd.Categorical(df['month'],
-                                categories = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
-                                                'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
-                                ordered = True)
-
-    job_mapping = {
-        'management': 'Management',
-        'entrepreneur': 'Independant', 'self-employed': 'Independant',
-        'housemaid': 'Services', 'services': 'Services',
-        'technician': 'Ouvriers-Techniciens', 'admin.': 'Ouvriers-Techniciens', 'blue-collar': 'Ouvriers-Techniciens',
-        'retired': 'Autres', 'unemployed': 'Autres', 'student': 'Autres'
-    }
-    df['job_group'] = df['job'].map(job_mapping).fillna('Autres')
-    return df
-
-# Remplacement des valeurs "unknown" par NaN
-@st.cache_data
-def replace_unknown(df):
-    df.replace("unknown", np.nan, inplace = True)
-    return df # type: ignore
-
-# Transformation des variables à deux modalités en booléennes
-@st.cache_data
-def transform_to_bool(df):
-    df[["housing", "default", "loan", "deposit"]] = df[["housing", "default", "loan", "deposit"]].replace({"yes": 1, "no": 0})
-    return df
-
-# Création de la variable active_loan
-@st.cache_data
-def create_active_loan(df):
-    df['active_loan'] = (df['housing'] | df['loan']).astype(int)
-    return df
 
 # Suppression des colonnes inutiles
 @st.cache_data
@@ -70,10 +12,16 @@ def remove_useless_col(df):
     df = df.drop(['poutcome', 'duration', 'pdays', 'campaign', 'contact', 'age', 'job', 'balance', 'loan', 'housing'], axis=1)
     return df
 
+@st.cache_data
+def remove_useless_col_advanced(df): 
+    df = df.drop(['poutcome', 'duration', 'pdays', 'campaign', 'age', 'job', 'balance', 'contact', 'month', 'previous'], axis=1)
+    return df
+
+
+# --- Fonctions de préparation des données pour la modélisation ---
 # Sépration du jeu de données train/test et définition des variables explicatives et cibles
 @st.cache_data
 def split_data(df):
-    # Séparer les variables cibles et les variables explicatives
     y = df['deposit']
     X = df.drop('deposit', axis=1)
 
@@ -82,6 +30,36 @@ def split_data(df):
     # Définir les colonnes numériques et catégorielles
     var_num = ['day', 'default', 'active_loan', 'previous']
     var_cat = ['job_group', 'marital', 'education', 'month','age_group', 'balance_group']
+
+    return df, X_train, X_test, y_train, y_test, var_num, var_cat
+
+
+@st.cache_data
+def split_data_advanced(df):
+    y = df['deposit']
+    X = df.drop('deposit', axis=1)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=48)
+    
+    # Encodage cyclique pour day
+    X_train['day_sin'] = np.sin(2 * np.pi * X_train['day'] / 31)
+    X_train['day_cos'] = np.cos(2 * np.pi * X_train['day'] / 31)
+    X_test['day_sin'] = np.sin(2 * np.pi * X_test['day'] / 31)
+    X_test['day_cos'] = np.cos(2 * np.pi * X_test['day'] / 31)
+
+    # Encodage cyclique pour month_num
+    X_train['month_sin'] = np.sin(2 * np.pi * X_train['month_num'] / 12)
+    X_train['month_cos'] = np.cos(2 * np.pi * X_train['month_num'] / 12)
+    X_test['month_sin'] = np.sin(2 * np.pi * X_test['month_num'] / 12)
+    X_test['month_cos'] = np.cos(2 * np.pi * X_test['month_num'] / 12)
+
+    # On supprime les colonnes originales
+    X_train = X_train.drop(['day', 'month_num'], axis=1)
+    X_test = X_test.drop(['day', 'month_num'], axis=1)
+
+    # Définir les colonnes numériques et catégorielles
+    var_num = ['default', 'active_loan', 'day_sin', 'day_cos', 'month_sin', 'month_cos', 'contacted_before']
+    var_cat = ['job_group', 'marital', 'education', 'age_group', 'balance_group']
 
     return df, X_train, X_test, y_train, y_test, var_num, var_cat
 
@@ -145,146 +123,3 @@ def encode_categorical_features(X_train, X_test, y_train, y_test, var_cat):
     X_test_final = pd.concat([X_test.drop(columns=var_cat), X_test_encoded_df], axis=1)
     
     return X_train_final, X_test_final, y_train, y_test
-
-
-@st.cache_data
-def ready_to_process_data():
-    from utils.data_loader import load_cleaned_and_prepared_data 
-    df = load_cleaned_and_prepared_data()
-    # Séparer les données en train et test
-    df, X_train, X_test, y_train, y_test, var_num, var_cat = split_data(df)
-    # Gérer les valeurs manquantes
-    X_train, X_test = manage_missing_values(X_train, X_test, var_num, var_cat)
-    # Mettre à l'échelle les variables numériques
-    X_train, X_test = scale_numeric_features(X_train, X_test, var_num)
-    # Encoder les variables catégorielles
-    X_train_final, X_test_final, y_train, y_test = encode_categorical_features(
-    X_train, X_test, y_train, y_test, var_cat)
-    return X_train_final, X_test_final, y_train, y_test
-
-@st.cache_data
-def evaluate_models():
-    # Chargement des données prétraitées
-    X_train, X_test, y_train, y_test = ready_to_process_data()
-    
-    # Modèles à tester
-    models = {
-        "Logistic Regression": LogisticRegression(max_iter = 1000),
-        "Random Forest": RandomForestClassifier(n_estimators = 100, random_state = 48),
-        "SVM": SVC(),
-        "Decision Tree": DecisionTreeClassifier(random_state = 48)
-    }
-
-    results_list = []
-    reports = {}
-    confusion_matrices = {}
-
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-
-        y_train_pred = model.predict(X_train)
-        y_test_pred = model.predict(X_test)
-
-        train_acc = accuracy_score(y_train, y_train_pred)
-        test_acc = accuracy_score(y_test, y_test_pred)
-        precision_1 = precision_score(y_test, y_test_pred, pos_label = 1)
-        recall_1 = recall_score(y_test, y_test_pred, pos_label = 1)
-        f1_1 = f1_score(y_test, y_test_pred, pos_label = 1)
-
-        cm = confusion_matrix(y_test, y_test_pred)
-        false_positives = cm[0][1]
-
-        results_list.append({
-            "Modèle": name,
-            "Train Accuracy": round(train_acc, 4),
-            "Test Accuracy": round(test_acc, 4),
-            "Faux positifs": false_positives,
-            "Precision (classe 1)": round(precision_1, 4),
-            "Recall (classe 1)": round(recall_1, 4),
-            "F1-score (classe 1)": round(f1_1, 4)
-        })
-
-        reports[name] = classification_report(y_test, y_test_pred, output_dict = False)
-        confusion_matrices[name] = cm
-
-    return pd.DataFrame(results_list), reports, confusion_matrices, models
-
-@st.cache_data
-def evaluate_models_optimisation():
-    # Chargement des données prétraitées
-    X_train, X_test, y_train, y_test = ready_to_process_data()
-
-    # Modèles à tester
-    models = {
-        "Logistic Regression": LogisticRegression(C=1, class_weight='balanced', max_iter=1000, random_state=48),
-        "SVM": SVC(random_state=48),
-        "Random Forest v2": RandomForestClassifier(n_estimators=100, max_depth=10, min_samples_leaf=15, random_state=48),
-        "Decision Tree v2": DecisionTreeClassifier(max_depth=10, min_samples_leaf=10, random_state=48),
-        "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=0.05, max_depth=5, min_samples_split=20,
-        min_samples_leaf=15, random_state=48)
-    }
-
-    results_list = []
-    reports = {}
-    confusion_matrices = {}
-
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-
-        y_train_pred = model.predict(X_train)
-        y_test_pred = model.predict(X_test)
-
-        train_acc = accuracy_score(y_train, y_train_pred)
-        test_acc = accuracy_score(y_test, y_test_pred)
-        precision_1 = precision_score(y_test, y_test_pred, pos_label = 1)
-        recall_1 = recall_score(y_test, y_test_pred, pos_label = 1)
-        f1_1 = f1_score(y_test, y_test_pred, pos_label = 1)
-
-        cm = confusion_matrix(y_test, y_test_pred)
-        false_positives = cm[0][1]
-
-        results_list.append({
-            "Modèle": name,
-            "Train Accuracy": round(train_acc, 4),
-            "Test Accuracy": round(test_acc, 4),
-            "Faux positifs": false_positives,
-            "Precision (classe 1)": round(precision_1, 4),
-            "Recall (classe 1)": round(recall_1, 4),
-            "F1-score (classe 1)": round(f1_1, 4)
-        })
-
-        reports[name] = classification_report(y_test, y_test_pred, output_dict = False)
-        confusion_matrices[name] = cm
-
-    return pd.DataFrame(results_list), reports, confusion_matrices, models
-
-
-
-def importance_features():
-    # Récupération des modèles entraînés
-    _, _, _, trained_models = evaluate_models_optimisation()
-
-    # Récupération du modèle Gradient Boosting
-    model = trained_models.get("Gradient Boosting")
-
-    if model is None or not hasattr(model, "feature_importances_"):
-        st.warning("Le modèle Gradient Boosting n'est pas disponible ou ne fournit pas d'importances.")
-        return
-
-    # Chargement des données pour récupérer les noms des colonnes
-    X_train, _, _, _ = ready_to_process_data()
-    feature_names = X_train.columns
-    importances = model.feature_importances_
-
-    # Créer le DataFrame
-    feature_importance_df = pd.DataFrame({
-        "Feature": feature_names,
-        "Importance": importances
-    }).sort_values(by = "Importance", ascending = False)
-
-    # Affichage
-    plt.barh(feature_importance_df["Feature"][:10], feature_importance_df["Importance"][:10], color = 'skyblue')
-    plt.xlabel("Importance")
-    plt.title("Top 10 Features - Gradient Boosting")
-    plt.gca().invert_yaxis()
-    st.pyplot(plt)
