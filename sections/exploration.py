@@ -33,9 +33,10 @@ def show_exploration():
     # Affichage variables numériques vs deposit
     st.subheader("Comparaison des variables numériques avec la variable cible")
 
-
+    # On applique les transformations sur les données numériques
     df = prepa_num(df)
 
+    # Affichage des visualisations pour les variables numériques
     age_percentages = pd.crosstab(df['age_group'], df['deposit'], normalize = 'index') * 100
     balance_percentages = pd.crosstab(df['balance_group'], df['deposit'], normalize = 'index') * 100
     day_percentages = pd.crosstab(df['day'], df['deposit'], normalize = 'index') * 100
@@ -81,10 +82,12 @@ def show_exploration():
         "Données financières": ['default', 'housing', 'loan'],
         "Données campagne": ['contact', 'month', 'poutcome']} 
     
+    # On applique les transformations sur les données catégorielles
     df = prepa_cat(df)
 
     st.subheader("Comparaison des variables catégorielles avec la variable cible")
 
+    # Affichage des visualisations pour les variables catégorielles
     for groupe, variables in groupes.items():
         with st.expander(f"{groupe}"):
             fig, axes = plt.subplots(nrows = 1, ncols = len(variables), figsize = (5 * len(variables), 5))

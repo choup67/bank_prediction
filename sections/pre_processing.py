@@ -21,9 +21,11 @@ def show_pre_processing():
         On a vu que certaines variables contiennent des valeurs `unknown` qui ne sont pas pertinentes pour l'analyse.
         On va donc les remplacer par des valeurs nulles (NaN) pour pouvoir les traiter plus facilement.
         """)
+
         # Remplacement des "unknown" par des NaN
         df = replace_unknown(df)
         st.code(textwrap.dedent(inspect.getsource(replace_unknown)), language = 'python')
+
         # Affichage des valeurs nulles par colonne
         if st.checkbox("Afficher le résultat", value = False):
             st.write(df.isnull().sum())
@@ -33,6 +35,7 @@ def show_pre_processing():
         Comme vu dans la partie exploration, certaines variables n'ont que deux modalités (yes/no).
         On va donc les transformer en variables booléennes (0/1) pour faciliter l'analyse et améliorer les performances.
         """)
+
         # Conversion des variables "yes" et "no" en 1 et 0
         df = transform_to_bool(df)
         st.code(textwrap.dedent(inspect.getsource(transform_to_bool)), language = 'python')
@@ -40,6 +43,7 @@ def show_pre_processing():
         if st.checkbox("Afficher les variables converties", value = False):
             st.write(df[["housing", "default", "loan", "deposit"]].head(5))
 
+        # Création de la variable `active_loan` pour savoir si le client a au moins un prêt actif
         st.subheader("Création de la variable `Active Loan`")
         st.markdown("""
         On va créer une nouvelle variable `active_loan` qui vaudra 1 si le client a au moins un prêt actif (housing ou loan).
@@ -50,6 +54,7 @@ def show_pre_processing():
         if st.checkbox("Afficher la nouvelle colonne", value = False):
             st.write(df[['housing', 'loan', 'active_loan']].head(5))
 
+        # Suppression des colonnes inutiles
         st.subheader("Suppression des colonnes inutiles")
         st.markdown("""
         - `contact` : contient des valeurs manquantes et n’est pas pertinent pour l’analyse
@@ -74,7 +79,7 @@ def show_pre_processing():
             - On sépare le jeu de données en jeu d'entraintement et de test
             - On stocke les variables catégorielles et numériques dans des variables distinctes
             - On impute les transformations nécessaires aux variables catégorielles avec `SimpleImputer()` sur le most frequent 
-            - On impute les transformations nécessaires aux variables numériques avec `SimpleImputer()` en utilisant la moyenne
+            - On impute les transformations nécessaires aux variables numériques avec `SimpleImputer()` en utilisant la médiane car nous avons trop d'outliers
             - On fait une mise à l'échelle des variables numériques avec `StandardScaler()` 
             - On encode les variables catégorielles avec `OneHotEncoder()`
             """)
@@ -82,12 +87,14 @@ def show_pre_processing():
                 # Chargement des données prêtes
             X_train_final, X_test_final, y_train, y_test = ready_to_process_data()
 
+            #  Affichage des dimensions du jeu de données
             st.subheader("Dimensions du jeu de données :")
             st.markdown(f"""
             - X_train shape : `{X_train_final.shape}`
             - X_test shape : `{X_test_final.shape}`
             """)
 
+            # Affichage des données prêtes pour la modélisation
             st.subheader("Aperçu des données d'entraînement prêtes pour la modélisation :")
             if st.checkbox("Afficher un aperçu des données modélisées", value = False):
                 st.dataframe(X_train_final.head(), use_container_width = True)

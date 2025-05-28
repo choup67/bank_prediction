@@ -57,7 +57,7 @@ def show_modelisation():
             buf.seek(0)
             plt.close(fig)
 
-            # Afficher sans étirement
+            # Affichage retravaillé
             st.image(buf, caption = f"Matrice de confusion – {selected_model}", use_container_width = False)
 
         st.subheader("Interprétation des résultats")
@@ -71,6 +71,7 @@ def show_modelisation():
                     """)
         
         st.subheader("Résultats après premiers ajustements")
+        # Affichage des résultats après optimisation
         results_df_optim, _, _, _ = evaluate_models_optimisation()
         st.dataframe(results_df_optim, use_container_width = True)
         st.markdown("""
@@ -79,12 +80,15 @@ def show_modelisation():
         Le nouveau modele Gradient Boosting testé semble également très prometteur.
                     """)
         
+        # Importance features sur le meilleur modèle
         st.subheader("Affichage des importances features sur Gradient Boosting")
         if st.checkbox("Afficher les features importantes", value = False):
             importance_features()
 
 
     with tab2:
+
+        # Création d'un outil pour tester manuellement plusieurs configurations possibles
         st.header("Modélisation personnalisée")
         colA, colB = st.columns(2)
 
@@ -121,6 +125,7 @@ def show_modelisation():
         # Chargement des données
         X_train, X_test, y_train, y_test = ready_to_process_data_advanced()
 
+        # Modèle et paramètres par défaut
         model_options = ["Logistic Regression", "SVM", "Random Forest v2", "Decision Tree v2", "Gradient Boosting"]
         model_choice = st.selectbox("Choisissez un modèle :", model_options)
 
@@ -191,7 +196,7 @@ def show_modelisation():
 
         st.markdown("---")
 
-        # Résultats
+        # Affichage des résultats
         if st.session_state["acc"] is not None:
             st.subheader("Résultats")
             st.write(f"**Accuracy :** {st.session_state['acc']:.4f}")
@@ -199,7 +204,7 @@ def show_modelisation():
             st.write(f"**Recall (classe 1) :** {st.session_state['rec']:.4f}")
             st.write(f"**F1-score (classe 1) :** {st.session_state['f1']:.4f}")
 
-        # Bouton : Sauvegarder
+        # Bouton sauvegarder pour mettre les résultats dans un dataframe
         if st.button("💾 Sauvegarder les résultats"):
             if st.session_state["acc"] is not None:
                 param_str = ", ".join(f"{k}={v}" for k, v in params.items())
@@ -218,11 +223,11 @@ def show_modelisation():
 
         st.markdown("---")
 
-        # Affichage tableau
+        # Affichage du dataframe avec les résultats sauvegardés
         st.subheader("Tableau récapitulatif des modèles sauvegardés")
         st.dataframe(st.session_state["results_df"])
 
-        # Bouton : Effacer (déplacé ici)
+        # Affichage du bouton effacer pour vider le dataframe
         if st.button("🧹 Effacer la table des résultats"):
             st.session_state["results_df"] = pd.DataFrame(columns = ["Modèle", "Paramètres", "Accuracy", "Precision", "Recall", "F1"])
             st.success("Tableau réinitialisé.")

@@ -225,7 +225,7 @@ def show_decouverte():
         - `previous`
             - **Nombre de contact précédent la campagne en cours**
             - La valeur 0 indique que le client n'a pas été contacté précédemment
-            - 75% des clients ont été contacté une fois ou moins
+            - 75% des clients ont été contactés une fois ou moins
             - On peut déduire que la nouvelle campagne cherche à toucher de nouveaux prospects
             - On a aussi des valeurs extrêmes où un client a été contacté 58 fois
             - Peut être que le groupe de client déjà contacté a toujours souscrit aux offres précédentes et serait donc une bonne cible stratégique pour la nouvelle campagne. Chose que l'on pourra vérifier lors des analyses graphiques
